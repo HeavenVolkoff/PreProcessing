@@ -1,6 +1,5 @@
 #include <cmath>
 #include <vector>
-#include <complex>
 #include <iostream>
 
 #include <fftw3.h>
@@ -48,7 +47,6 @@ vector<double> fft (vector<double> &audioData) {
 }
 
 vector<double> getAudioDataFromWavFile (const std::string &filePath) {
-    double* audioData;
     size_t audioDataSize;
     vector<double> output;
     sf_count_t readFrames;
@@ -65,10 +63,27 @@ vector<double> getAudioDataFromWavFile (const std::string &filePath) {
 
     audioDataSize = (size_t) audioFile.frames() * audioFile.channels();
     output = vector<double>(audioDataSize);
-    readFrames = audioFile.read(output.data(), audioFile.frames());
+    readFrames = audioFile.read(output.data(), audioDataSize);
 
-    if (readFrames != audioFile.frames()) {
+    if (readFrames != audioDataSize) {
         throw "Number of read frames don't match all frames in audio file.";
+    }
+
+    // mix down to mono
+    if (audioFile.channels() > 1) {
+        vector<double> mono((size_t) audioFile.frames());
+
+        for(int i = 0; i < audioFile.frames(); i++) {
+            mono[i] = 0;
+
+            for(int j = 1; j < audioFile.channels(); j++){
+                mono[i] += output[i * audioFile.channels() + j];
+            }
+
+            mono[i] /= audioFile.channels();
+        }
+
+        return mono;
     }
 
     return output;
