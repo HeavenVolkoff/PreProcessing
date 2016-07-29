@@ -7,8 +7,12 @@ project(PreProcessing)
 # OBS: Do NOT use Linker OR Include flags (CMAKE take care of this for you)
 set(Flags "-std=c++14")
 
+# Include all Header files (.h, .hh)
+include_directories(./include)
+
 # List of Source files (.c, .cc, .cpp)
 set(SOURCE_FILES
+        src/PreProcessing.cpp
         src/main.cpp
         )
 
@@ -39,14 +43,16 @@ add_executable(PreProcessing
         )
 
 # Include the dependencies header files to be compiled
-include_directories(${PORTAUDIO_INCLUDE_DIRS}
-        ${LIBSNDFILE_INCLUDE_DIRS}
+include_directories(
         ${FFTW_INCLUDES}
+        ${PORTAUDIO_INCLUDE_DIRS}
+        ${LIBSNDFILE_INCLUDE_DIRS}
         )
 
 # Link the dependencies libs
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(
+        ${PROJECT_NAME}
+        ${FFTW_LIBRARIES}
         ${PORTAUDIO_LIBRARIES}
         ${LIBSNDFILE_LIBRARIES}
-        ${FFTW_LIBRARIES}
         )
