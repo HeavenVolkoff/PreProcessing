@@ -17,8 +17,9 @@ void printVector (const vector<T> &v) {
 }
 
 inline
-double hann(double value) {
-    double x = cos(value * M_PI / 2.0);
+double hann(int n, int samples) {
+    double t = M_PI * n / (double) (samples - 1);
+    double x = sin(t);
     return x*x;
 }
 
@@ -100,7 +101,8 @@ int main(int argc, char **argv) {
     printVector<double>(audioData);
 
     //Apply windowing function to vector
-    transform(audioData.begin(), audioData.end(), audioData.begin(), &hann);
+    for (int i=0; i < audioData.size; ++i)
+        audioData[i] *= hann(i, audioData.size);
 
     printVector<double>(audioData);
 
