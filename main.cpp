@@ -14,16 +14,6 @@ double hann(double value) {
     return x*x;
 }
 
-vector<double> windowing (vector<double> &audioData) {
-    size_t counter = 0;
-
-    for (const double &data : audioData) {
-        audioData[counter++] = hann(data);
-    }
-
-    return audioData;
-}
-
 vector<complex> fft (const vector<double> &data) {
     // TODO: http://www.jimmo.org/example-of-one-dimensional-dft-of-real-data-with-fftw/
 }
@@ -45,17 +35,13 @@ vector<double> getAudioDataFromWavFile (const std::string &filePath) {
     cout << audioFile.frames() << " frames, " << audioFile.samplerate() << " samplerate, " << audioFile.channels() << " channels, " << endl;
 
     audioDataSize = (size_t) audioFile.frames() * audioFile.channels();
-    audioData = (double*) malloc(audioDataSize * sizeof(double));
-    readFrames = audioFile.read(audioData, audioFile.frames());
+    output = vector<double>(audioDataSize);
+    readFrames = audioFile.read(output.data(), audioFile.frames());
 
     if (readFrames != audioFile.frames()) {
         throw "Number of read frames don't match all frames in audio file.";
     }
 
-    output = vector<double>(audioDataSize);
-    output.assign(audioData, audioData + audioDataSize);
-
-    free(audioData);
     return output;
 }
 
@@ -66,7 +52,9 @@ int main(int argc, char **argv) {
     }
 
     vector<double> audioData = getAudioDataFromWavFile(argv[1]);
-    audioData = windowing(audioData);
+
+    //Apply windowing function to vector
+    transform(audioData.begin(), audioData.end(), audioData.begin(), &hann);
 
     vector<complex> transformedData = fft(audioData);
 
