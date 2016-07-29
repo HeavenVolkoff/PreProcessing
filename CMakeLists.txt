@@ -20,6 +20,7 @@ set(CMAKE_MODULE_PATH
 # Execute each dependency find_cmake script
 find_package(FFTW REQUIRED)
 find_package(LibSndFile REQUIRED)
+find_package(LibG3Logger REQUIRED)
 find_package(LibPortAudio REQUIRED)
 
 # Same as above, but OpenMP isn't a obligatory dependency
@@ -39,14 +40,18 @@ add_executable(PreProcessing
         )
 
 # Include the dependencies header files to be compiled
-include_directories(${PORTAUDIO_INCLUDE_DIRS}
-        ${LIBSNDFILE_INCLUDE_DIRS}
+include_directories(
         ${FFTW_INCLUDES}
+        ${PORTAUDIO_INCLUDE_DIRS}
+        ${LIBSNDFILE_INCLUDE_DIRS}
+        ${LIBG3LOGGER_INCLUDE_DIRS}
         )
 
 # Link the dependencies libs
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(
+        ${PROJECT_NAME}
+        ${FFTW_LIBRARIES}
         ${PORTAUDIO_LIBRARIES}
         ${LIBSNDFILE_LIBRARIES}
-        ${FFTW_LIBRARIES}
+        ${LIBG3LOGGER_LIBRARIES}
         )
