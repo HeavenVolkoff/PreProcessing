@@ -1,35 +1,57 @@
 cmake_minimum_required(VERSION 3.5)
+
+# Project Name (and also the compiled binary's name)
 project(PreProcessing)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+# Flags to send to the compiler
+# OBS: Do NOT use Linker OR Include flags (CMAKE take care of this for you)
+set(Flags "-std=c++14")
 
-find_package(FFTW)
-find_package(LibSndFile)
-find_package(LibPortAudio)
+# Include all Header files (.h, .hh)
+include_directories(./include)
 
-if (NOT PORTAUDIO_FOUND)
-    message(FATAL_ERROR "PortAudio not found")
+# List of Source files (.c, .cc, .cpp)
+set(SOURCE_FILES
+        src/main.cpp
+        )
 
-elseif(NOT LIBSNDFILE_FOUND)
-    message(FATAL_ERROR "LibSndFile not found")
+# Include Projet cmake scripts (Mostly used to find dependencies libraries on the system)
+set(CMAKE_MODULE_PATH
+        ${CMAKE_MODULE_PATH}
+        "${CMAKE_SOURCE_DIR}/cmake")
 
-elseif(NOT FFTW_FOUND)
-    message(FATAL_ERROR "FFTW not found")
+# Execute each dependency find_cmake script
+find_package(FFTW REQUIRED)
+find_package(LibSndFile REQUIRED)
+find_package(LibPortAudio REQUIRED)
 
-endif()
-
+# Same as above, but OpenMP isn't a obligatory dependency
 find_package(OpenMP)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-set(Flags "-std=c++14")
-
+# Set the compiler flags
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${Flags} ${PORTAUDIO_DEFINITIONS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Flags} ${PORTAUDIO_DEFINITIONS}")
 
-set(SOURCE_FILES main.cpp)
-add_executable(PreProcessing ${SOURCE_FILES})
-include_directories(${PORTAUDIO_INCLUDE_DIRS} ${LIBSNDFILE_INCLUDE_DIRS} ${FFTW_INCLUDES})
-target_link_libraries(${PROJECT_NAME} ${PORTAUDIO_LIBRARIES} ${LIBSNDFILE_LIBRARIES} ${FFTW_LIBRARIES})
+# Specify which project's files will be compiled
+add_executable(PreProcessing
+        ${SOURCE_FILES}
+        )
+
+# Include the dependencies header files to be compiled
+include_directories(${PORTAUDIO_INCLUDE_DIRS}
+        ${LIBSNDFILE_INCLUDE_DIRS}
+        ${FFTW_INCLUDES}
+        ${LIBG3LOGGER_INCLUDE_DIRS}
+        )
+
+# Link the dependencies libs
+target_link_libraries(${PROJECT_NAME}
+        ${PORTAUDIO_LIBRARIES}
+        ${LIBSNDFILE_LIBRARIES}
+        ${FFTW_LIBRARIES}
+        ${LIBG3LOGGER_LIBRARIES}
+        )
