@@ -42,6 +42,7 @@ add_executable(PreProcessing
 include_directories(${PORTAUDIO_INCLUDE_DIRS}
         ${LIBSNDFILE_INCLUDE_DIRS}
         ${FFTW_INCLUDES}
+        ./lib/spdlog/include/spdlog
         )
 
 # Link the dependencies libs
