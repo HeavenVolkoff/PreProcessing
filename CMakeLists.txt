@@ -15,7 +15,8 @@ set(SOURCE_FILES
 # Include Projet cmake scripts (Mostly used to find dependencies libraries on the system)
 set(CMAKE_MODULE_PATH
         ${CMAKE_MODULE_PATH}
-        "${CMAKE_SOURCE_DIR}/cmake")
+        ${CMAKE_SOURCE_DIR}/cmake
+        )
 
 # Execute each dependency find_cmake script
 find_package(FFTW REQUIRED)
@@ -42,7 +43,7 @@ add_executable(PreProcessing
 include_directories(${PORTAUDIO_INCLUDE_DIRS}
         ${LIBSNDFILE_INCLUDE_DIRS}
         ${FFTW_INCLUDES}
-        ./lib/spdlog/include/spdlog
+        lib/spdlog/include
         )
 
 # Link the dependencies libs
