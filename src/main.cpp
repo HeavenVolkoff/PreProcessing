@@ -91,7 +91,7 @@ vector<double> getAudioDataFromWavFile(const std::string &filePath) {
         for (int i = 0; i < audioFile.frames(); i++) {
             mono[i] = 0;
 
-            for (int j = 1; j < audioFile.channels(); j++) {
+            for (int j = 0; j < audioFile.channels(); j++) {
                 mono[i] += output[i * audioFile.channels() + j];
             }
 
