@@ -9,19 +9,23 @@
 
 using namespace std;
 
+// Logger (will be initialized on main)
 std::shared_ptr<spdlog::logger> console;
 
-
+/**
+ * Log received vector
+ * @param v
+ */
 template<class T>
-void printVector(const vector<T> &v) {
+void printVector(const vector<T> &v, size_t limit = 100) {
     if (console->level() > spdlog::level::level_enum::debug) {
         return;
     }
 
     string arrStr = "[";
 
-    for (int i = 0; i < v.size() && i <= 100; i++) {
-        arrStr += to_string(v[i]) + (i == v.size() - 1 ? "" : i == 100 ? "..." : ", ");
+    for (int i = 0; i < v.size() && i <= limit; i++) {
+        arrStr += to_string(v[i]) + (i == v.size() - 1 ? "" : i == limit ? "..." : ", ");
     }
 
     arrStr += "]";
@@ -29,6 +33,13 @@ void printVector(const vector<T> &v) {
     console->debug(arrStr);
 }
 
+/**
+ * Apply the Hanning windowing function on received amplitude value
+ *
+ * @param index
+ * @param length
+ * @return
+ */
 inline
 double hann(size_t index, size_t length) {
     double x = M_PI * index / (double) (length - 1);
@@ -36,10 +47,13 @@ double hann(size_t index, size_t length) {
     return x * x;
 }
 
+/**
+ * Apply Fast Fourrier Transform on the received amplitude vector and return the respective ernergy vector
+ *
+ * @param audioData
+ * @return
+ */
 vector<double> fft(vector<double> &audioData) {
-    // http://www.fftw.org/doc/Complex-numbers.html
-    // http://www.jimmo.org/example-of-one-dimensional-dft-of-real-data-with-fftw/
-    // https://stackoverflow.com/questions/15949833/usage-of-complex-numbers-in-c
     int counter;
     double real, imag;
 
@@ -60,6 +74,12 @@ vector<double> fft(vector<double> &audioData) {
     return output;
 }
 
+/**
+ * Get amplitude vector from WAV file
+ *
+ * @param filePath
+ * @return
+ */
 vector<double> getAudioDataFromWavFile(const std::string &filePath) {
     vector<double> output;
     sf_count_t readFrames;
@@ -73,7 +93,7 @@ vector<double> getAudioDataFromWavFile(const std::string &filePath) {
         throw string("Failed to open audio file. Reason: ") + audioFile.strError();
     }
 
-    console->debug("{0} frames, {1} samplerate, {2} channels.", audioFile.frames(), audioFile.samplerate(),
+    console->debug("{0} frames, {1} sample rate, {2} channels.", audioFile.frames(), audioFile.samplerate(),
                    audioFile.channels());
 
     audioDataSize = audioFile.frames() * audioFile.channels();
