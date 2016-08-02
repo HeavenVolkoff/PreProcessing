@@ -104,7 +104,7 @@ vector<double> getAudioDataFromWavFile(const std::string &filePath) {
     return output;
 }
 
-vector<double> pad(const vector<double> &audio, size_t frameSamples, size_t strideSamples)
+vector<double> padForFraming(const vector<double> &audio, size_t frameSamples, size_t strideSamples, size_t *frameCount)
 {
     vector<double> result(audio);
     size_t totalSamples = audio.size();
@@ -122,20 +122,36 @@ vector<double> pad(const vector<double> &audio, size_t frameSamples, size_t stri
 	totalSamples += padSamples;
 	console->debug("{0} samples of padding added.", padSamples);
     }
-    // DEBUG
     restSamples = totalSamples - frameSamples;
+    *frameCount = 1 + (restSamples / strideSamples);
+    // DEBUG
     console->debug("{0} <-- this number should be 0.", restSamples % strideSamples);    
     return result;
 }
 
-vector<double> window(const vector<double> &frame)
+vector<double> copyFrame(const vector<double> &audio, size_t i, size_t frameSamples, size_t strideSamples)
+{
+    vector<double> result;
+    size_t begin = i * strideSamples;
+
+    result.reserve(frameSamples);
+    for (int j=0; j < frameSamples; ++j) {
+	double val = audio[i*strideSamples + j];
+	result.push_back(val);
+    }
+    return result;
+}
+
+vector<double> applyWindow(const vector<double> &frame)
 {
     vector<double> result;
     size_t size = frame.size();
 
     result.reserve(size);
-    for (int i=0; i < size; ++i)
-	result[i] = frame[i] * hann(i, size);
+    for (int i=0; i < size; ++i) {
+  	double val = frame[i] * hann(i, size);
+	result.push_back(val);
+    }
     return result;
 }
 
@@ -159,18 +175,13 @@ int main(int argc, char **argv) {
     // TODO: frame using ms
     size_t frameSamples = 256;
     size_t strideSamples = 172;
+    size_t frameCount;
 
-    audioData = pad(audioData, frameSamples, strideSamples);
-    
-    // Iterate over frames
-    /*
-    for(int i=0; i < totalSamples; i += strideSamples) {
-	// Do whatever to frame
-	for (int j=0; j < frameSamples; ++j) {
-            // Do whatever to sample
-	}
+    audioData = padForFraming(audioData, frameSamples, strideSamples, &frameCount);
+    for (int i=0; i < frameCount; ++i) {
+ 	vector<double> frame = copyFrame(audioData, i, frameSamples, strideSamples);
+        frame = applyWindow(frame);
     }
-    */
 
     printVector(audioData);
 
