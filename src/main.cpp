@@ -104,6 +104,41 @@ vector<double> getAudioDataFromWavFile(const std::string &filePath) {
     return output;
 }
 
+vector<double> pad(const vector<double> &audio, size_t frameSamples, size_t strideSamples)
+{
+    vector<double> result(audio);
+    size_t totalSamples = audio.size();
+
+    if (totalSamples < frameSamples)
+	throw "Audio file is smaller than frame.";
+
+    size_t restSamples = totalSamples - frameSamples;
+    size_t oddSamples  = restSamples % strideSamples;
+    if (oddSamples != 0) {
+	size_t padSamples = strideSamples - oddSamples;
+	for (int i=0; i < padSamples; ++i)
+		result.push_back(0);
+	// DEBUG
+	totalSamples += padSamples;
+	console->debug("{0} samples of padding added.", padSamples);
+    }
+    // DEBUG
+    restSamples = totalSamples - frameSamples;
+    console->debug("{0} <-- this number should be 0.", restSamples % strideSamples);    
+    return result;
+}
+
+vector<double> window(const vector<double> &frame)
+{
+    vector<double> result;
+    size_t size = frame.size();
+
+    result.reserve(size);
+    for (int i=0; i < size; ++i)
+	result[i] = frame[i] * hann(i, size);
+    return result;
+}
+
 int main(int argc, char **argv) {
     // === Logger Init ===
     size_t q_size = 8192;
@@ -124,37 +159,18 @@ int main(int argc, char **argv) {
     // TODO: frame using ms
     size_t frameSamples = 256;
     size_t strideSamples = 172;
-    
-    // Pad audio with 0's
-    size_t totalSamples = audioData.size();
-    if (totalSamples < frameSamples) {
-	console->warn("Audio file is too small. Why do you do this to me?");
-	return -1;
-    }
-    size_t restSamples = totalSamples - frameSamples;
-    size_t oddSamples  = restSamples % strideSamples;
-    if (oddSamples != 0) {
-	size_t padSamples = strideSamples - oddSamples;
-	for (int i=0; i < padSamples; ++i)
-		audioData.push_back(0);
-	totalSamples += padSamples;
-	console->debug("{0} samples of padding added.", padSamples);
-    }
-    restSamples = totalSamples - frameSamples;
-    console->debug("{0} <-- this number should be 0.", restSamples % strideSamples);
 
+    audioData = pad(audioData, frameSamples, strideSamples);
+    
     // Iterate over frames
+    /*
     for(int i=0; i < totalSamples; i += strideSamples) {
 	// Do whatever to frame
 	for (int j=0; j < frameSamples; ++j) {
             // Do whatever to sample
 	}
     }
-
-    //Apply windowing function to vector
-    for (size_t i = 0; i < audioData.size(); ++i) {
-        audioData[i] *= hann(i, audioData.size());
-    }
+    */
 
     printVector(audioData);
 
