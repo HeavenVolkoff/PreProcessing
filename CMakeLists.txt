@@ -7,9 +7,6 @@ project(PreProcessing)
 # OBS: Do NOT use Linker OR Include flags (CMAKE take care of this for you)
 set(Flags "-std=c++14")
 
-# Include all Header files (.h, .hh)
-include_directories(./include)
-
 # List of Source files (.c, .cc, .cpp)
 set(SOURCE_FILES
         src/PreProcessing.cpp
@@ -19,7 +16,8 @@ set(SOURCE_FILES
 # Include Projet cmake scripts (Mostly used to find dependencies libraries on the system)
 set(CMAKE_MODULE_PATH
         ${CMAKE_MODULE_PATH}
-        "${CMAKE_SOURCE_DIR}/cmake")
+        ${CMAKE_SOURCE_DIR}/cmake
+        )
 
 # Execute each dependency find_cmake script
 find_package(FFTW REQUIRED)
@@ -44,7 +42,9 @@ add_executable(PreProcessing
 
 # Include the dependencies header files to be compiled
 include_directories(
+        ./include
         ${FFTW_INCLUDES}
+        lib/spdlog/include
         ${PORTAUDIO_INCLUDE_DIRS}
         ${LIBSNDFILE_INCLUDE_DIRS}
         )
