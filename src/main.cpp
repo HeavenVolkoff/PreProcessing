@@ -48,9 +48,11 @@ vector<double> fft(vector<double> &audioData) {
     fftw_plan plan = fftw_plan_dft_r2c_1d((int) audioData.size(), audioData.data(), fftResult, FFTW_ESTIMATE);
     fftw_execute(plan);
 
+    // TODO: Check for redundancy (if so, drop half of fft result) 
     for (counter = 0; counter < audioData.size(); counter++) {
         real = fftResult[counter][0];
         imag = fftResult[counter][1];
+        // TODO: Check if sqrt is necessary
         output[counter] = sqrt((real * real) + (imag * imag));
     }
 
@@ -136,7 +138,7 @@ vector<double> copyFrame(const vector<double> &audio, size_t i, size_t frameSamp
 
     result.reserve(frameSamples);
     for (int j=0; j < frameSamples; ++j) {
-	double val = audio[i*strideSamples + j];
+	double val = audio[begin + j];
 	result.push_back(val);
     }
     return result;
@@ -179,8 +181,9 @@ int main(int argc, char **argv) {
 
     audioData = padForFraming(audioData, frameSamples, strideSamples, &frameCount);
     for (int i=0; i < frameCount; ++i) {
- 	vector<double> frame = copyFrame(audioData, i, frameSamples, strideSamples);
+        vector<double> frame = copyFrame(audioData, i, frameSamples, strideSamples);
         frame = applyWindow(frame);
+        frame = fft(frame);
     }
 
     printVector(audioData);
