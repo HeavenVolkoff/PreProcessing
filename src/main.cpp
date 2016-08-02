@@ -220,6 +220,7 @@ vector<double> filterBanks(const vector<double> &frame, unsigned sampleRate, siz
             double factor = (end - j) / (end - middle);
             result[i] += frame[j] * factor;
         }
+        result[i] = log(result[i]);
     }
     delete[] pointsSample;
 
@@ -228,7 +229,7 @@ vector<double> filterBanks(const vector<double> &frame, unsigned sampleRate, siz
     if (enabled2) {
         fprintf(stdout, "result := [");
         for (int i=0; i < filterCount; ++i)
-            fprintf(stdout,  "%d, ", result[i]);
+            fprintf(stdout,  "%g, ", result[i]);
         fprintf(stdout, "]\n");
         enabled2 = false;
     }
