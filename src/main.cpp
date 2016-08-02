@@ -190,8 +190,10 @@ vector<double> filterBanks(const vector<double> &frame, unsigned sampleRate, siz
     pointsSample  = new size_t[filterCount + 1];
     for (int i=0; i <= filterCount; ++i)
         pointsSample[i] = pointsFreq[i] * frame.size() / sampleRate;
+    delete[] pointsFreq;
 
-    // Insane formula goes here
+    // Insane formula goes here   
+    delete[] pointsSample;
 
     return result;
 }
