@@ -173,27 +173,65 @@ vector<double> filterBanks(const vector<double> &frame, unsigned sampleRate, siz
     double *pointsMels;
     double *pointsFreq;
     size_t *pointsSample;
+    size_t pointsCount;
     double cutoffLowMels  = freqToMels(cutoffLow);
     double cutoffHighMels = freqToMels(cutoffHigh);
-    double filterWidthMels = (cutoffHighMels - cutoffLowMels) / filterCount;
+    double filterWidthMels = (cutoffHighMels - cutoffLowMels) / (filterCount + 1);
 
-    pointsMels    = new double[filterCount + 1];
+    // TODO: Handle `cuttofHigh` over max frequency
+
+    pointsCount = filterCount + 2; // ?
+
+    pointsMels    = new double[pointsCount];
     pointsMels[0] = cutoffLowMels;
-    for (int i=0; i < filterCount; ++i)
-        pointsMels[i+1] = pointsMels[i] + filterWidthMels;
+    for (int i=1; i < pointsCount; ++i)
+        pointsMels[i] = pointsMels[i-1] + filterWidthMels;
 
-    pointsFreq    = new double[filterCount + 1];
-    for (int i=0; i <= filterCount; ++i)
+    pointsFreq    = new double[pointsCount];
+    for (int i=0; i < pointsCount; ++i)
         pointsFreq[i] = melsToFreq(pointsMels[i]);
     delete[] pointsMels;
 
-    pointsSample  = new size_t[filterCount + 1];
-    for (int i=0; i <= filterCount; ++i)
+    pointsSample  = new size_t[pointsCount];
+    for (int i=0; i < pointsCount; ++i)
         pointsSample[i] = pointsFreq[i] * frame.size() / sampleRate;
     delete[] pointsFreq;
 
-    // Insane formula goes here   
+    // DEBUG
+    static bool enabled = true;
+    if (enabled) {
+        fprintf(stdout, "pointsSample := [");
+        for (int i=0; i < pointsCount; ++i)
+            fprintf(stdout, "%d, ", pointsSample[i]);
+        fprintf(stdout, "]\n");
+        enabled = false;
+    }
+
+    for (int i=0; i < filterCount; ++i) {
+        size_t begin  = pointsSample[i+0];
+        size_t middle = pointsSample[i+1];
+        size_t end    = pointsSample[i+2];
+        result[i] = 0;
+        for (int j=begin;  j < middle; ++j) {
+            double factor = (j - begin) / (middle - begin);
+            result[i] += frame[j] * factor;
+        }
+        for (int j=middle; j < end;    ++j) {
+            double factor = (end - j) / (end - middle);
+            result[i] += frame[j] * factor;
+        }
+    }
     delete[] pointsSample;
+
+    // DEBUG
+    static bool enabled2 = true;
+    if (enabled2) {
+        fprintf(stdout, "result := [");
+        for (int i=0; i < filterCount; ++i)
+            fprintf(stdout,  "%d, ", result[i]);
+        fprintf(stdout, "]\n");
+        enabled2 = false;
+    }
 
     return result;
 }
@@ -216,7 +254,7 @@ int main(int argc, char **argv) {
     printVector(audioData);
 
     // TODO: frame using ms
-    size_t frameSamples = 256;
+    size_t frameSamples = 512;
     size_t strideSamples = 172;
     size_t frameCount;
 
@@ -225,7 +263,7 @@ int main(int argc, char **argv) {
         vector<double> frame = copyFrame(audioData, i, frameSamples, strideSamples);
         frame = applyWindow(frame);
         frame = fft(frame);
-        frame = filterBanks(frame, 44100, 26, 400, 22050);
+        frame = filterBanks(frame, 16000, 10, 300, 8000);
     }
 
     printVector(audioData);
