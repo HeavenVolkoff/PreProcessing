@@ -157,6 +157,45 @@ vector<double> applyWindow(const vector<double> &frame)
     return result;
 }
 
+double freqToMels(double freq)
+{
+    return 1125 * log(1 + freq/700);
+}
+
+double melsToFreq(double mels)
+{
+    return 700 * (exp(mels/1125) - 1);
+}
+
+vector<double> filterBanks(const vector<double> &frame, unsigned sampleRate, size_t filterCount, double cutoffLow, double cutoffHigh)
+{
+    vector<double> result(filterCount);
+    double *pointsMels;
+    double *pointsFreq;
+    size_t *pointsSample;
+    double cutoffLowMels  = freqToMels(cutoffLow);
+    double cutoffHighMels = freqToMels(cutoffHigh);
+    double filterWidthMels = (cutoffHighMels - cutoffLowMels) / filterCount;
+
+    pointsMels    = new double[filterCount + 1];
+    pointsMels[0] = cutoffLowMels;
+    for (int i=0; i < filterCount; ++i)
+        pointsMels[i+1] = pointsMels[i] + filterWidthMels;
+
+    pointsFreq    = new double[filterCount + 1];
+    for (int i=0; i <= filterCount; ++i)
+        pointsFreq[i] = melsToFreq(pointsMels[i]);
+    delete[] pointsMels;
+
+    pointsSample  = new size_t[filterCount + 1];
+    for (int i=0; i <= filterCount; ++i)
+        pointsSample[i] = pointsFreq[i] * frame.size() / sampleRate;
+
+    // Insane formula goes here
+
+    return result;
+}
+
 int main(int argc, char **argv) {
     // === Logger Init ===
     size_t q_size = 8192;
@@ -184,6 +223,7 @@ int main(int argc, char **argv) {
         vector<double> frame = copyFrame(audioData, i, frameSamples, strideSamples);
         frame = applyWindow(frame);
         frame = fft(frame);
+        frame = filterBanks(frame, 44100, 26, 400, 22050);
     }
 
     printVector(audioData);
