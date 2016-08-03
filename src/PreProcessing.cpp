@@ -124,11 +124,11 @@ void genFilterBanks(const vector<double> &frame, unsigned sampleRate, size_t fil
         size_t end = pointsSample[i + 2];
         (*result)[i] = 0.0;
         for (int j = begin; j < middle; ++j) {
-            double factor = (j - begin) / (middle - begin);
+            double factor = (j - begin) / (double) (middle - begin);
             (*result)[i] += frame[j] * factor;
         }
         for (int j = middle; j < end; ++j) {
-            double factor = (end - j) / (end - middle);
+            double factor = (end - j) / (double) (end - middle);
             (*result)[i] += frame[j] * factor;
         }
         (*result)[i] = log((*result)[i]);
