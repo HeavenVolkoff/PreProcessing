@@ -7,6 +7,11 @@ project(PreProcessing)
 # OBS: Do NOT use Linker OR Include flags (CMAKE take care of this for you)
 set(Flags "-std=c++14")
 
+# List of Header files (.h, .hh, .hpp)
+set(HEADER_FILES
+        include/PreProcessing.h
+        )
+
 # List of Source files (.c, .cc, .cpp)
 set(SOURCE_FILES
         src/PreProcessing.cpp
@@ -37,12 +42,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Flags} ${PORTAUDIO_DEFINITIONS}")
 
 # Specify which project's files will be compiled
 add_executable(PreProcessing
+        ${HEADER_FILES}
         ${SOURCE_FILES}
         )
 
 # Include the dependencies header files to be compiled
 include_directories(
-        ./include
         ${FFTW_INCLUDES}
         lib/spdlog/include
         ${PORTAUDIO_INCLUDE_DIRS}
