@@ -136,7 +136,7 @@ void genFilterBanks(const vector<double> &frame, unsigned sampleRate, size_t fil
     delete[] pointsSample;
 }
 
-PreProcessing::PreProcessing(const handler_t &handler) : handler{handler} {
+PreProcessing::PreProcessing() {
     // === Logger Init ===
     spdlog::set_async_mode(8192);
     console = spdlog::stdout_logger_mt(typeid(*this).name(), true);
@@ -144,12 +144,12 @@ PreProcessing::PreProcessing(const handler_t &handler) : handler{handler} {
     spdlog::drop_all();
 }
 
-void PreProcessing::loadAudioFile(const string &audioPath) {
+vector<double> PreProcessing::loadAudioFile(const string &audioPath) {
     int counter;
     SndfileHandle audioInfo = SndfileHandle(audioPath);
     fftw_complex *fftResult;
     fftw_plan fftPlan, dctPlan;
-    vector<double> audioData, frame, filterBanks;
+    vector<double> audioData, frame, filterBanks, pipeline;
     size_t binSize, windowSize, windowNum, windowStep;
 
     if (audioInfo.error()) {
@@ -157,8 +157,7 @@ void PreProcessing::loadAudioFile(const string &audioPath) {
         throw new logic_error(string("LibSndFile: ") + audioInfo.strError());
     }
 
-    console->debug("{0} frames, {1} sample rate, {2} channels.", audioInfo.frames(), audioInfo.samplerate(),
-                   audioInfo.channels());
+    // console->debug("{0} frames, {1} sample rate, {2} channels.", audioInfo.frames(), audioInfo.samplerate(), audioInfo.channels());
 
     audioData = getAudioData(audioInfo);
 
@@ -174,6 +173,7 @@ void PreProcessing::loadAudioFile(const string &audioPath) {
 
     frame = vector<double>(windowSize);
     filterBanks = vector<double>(filterCount);
+    pipeline = vector<double>(filterCount * (windowNum + oversamplingFactor - 1) / oversamplingFactor, 0.0);
     fftResult = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * windowSize);
     fftPlan = fftw_plan_dft_r2c_1d(windowSize, frame.data(), fftResult, FFTW_MEASURE);
     dctPlan = fftw_plan_r2r_1d(filterCount, filterBanks.data(), filterBanks.data(), FFTW_REDFT10, FFTW_MEASURE);
@@ -201,10 +201,15 @@ void PreProcessing::loadAudioFile(const string &audioPath) {
 
         fftw_execute(dctPlan); // Execute DCT
 
-        handler(filterBanks);
+        frameInit = counter * filterCount / oversamplingFactor;
+        for (j = 0; j < filterCount; j++) { // Copy FFT results to frame
+            pipeline[frameInit + j] += frame[j];
+        }
     }
 
     fftw_free(fftResult);
     fftw_destroy_plan(fftPlan);
     fftw_destroy_plan(dctPlan);
+
+    return pipeline;
 }
