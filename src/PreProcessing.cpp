@@ -3,7 +3,7 @@
 #include "../include/PreProcessing.h"
 
 using namespace std;
-using namespace voiceMagic;
+using namespace motrix;
 
 inline
 size_t getBinSize(size_t sampleRate, size_t resolutionDuration, size_t binMinimumSize = 512) {

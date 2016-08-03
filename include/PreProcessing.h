@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace voiceMagic {
+namespace motrix {
     /**
      * @link: http://support.ircam.fr/docs/AudioSculpt/3.0/co/FFT%20Params.html
      * @link: http://www.fftw.org/doc/Real_002dto_002dReal-Transforms.html#Real_002dto_002dReal-Transforms
@@ -41,7 +41,6 @@ namespace voiceMagic {
         typedef void (*handler_t)(const vector<double> &);
 
         PreProcessing(const handler_t &handler);
-        ~PreProcessing();
 
         void loadAudioFile(const string &);
 
