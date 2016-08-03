@@ -8,14 +8,12 @@ using namespace motrix;
  * @param v
  */
 template<class T>
-void printVector(const vector<T> &v, size_t limit = 100) {
-    string arrStr = "[";
+void printVector(const vector<T> &v) {
+    string arrStr = "";
 
-    for (int i = 0; i < v.size() && i <= limit; i++) {
-        arrStr += to_string(v[i]) + (i == v.size() - 1 ? "" : i == limit ? "..." : ", ");
+    for (int i = 0; i < v.size(); i++) {
+        arrStr += to_string(v[i]) + (i == v.size() - 1 ? "" : "\n");
     }
-
-    arrStr += "]";
 
     cout << arrStr << endl;
 }
@@ -26,11 +24,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    PreProcessing p([](const vector<double> &frame){
-        printVector(frame);
-    });
-
-    p.loadAudioFile(argv[1]);
+    PreProcessing p;
+    printVector(p.loadAudioFile(argv[1]));
 
     return 0;
 }
