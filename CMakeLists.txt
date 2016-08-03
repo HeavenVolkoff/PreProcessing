@@ -27,7 +27,7 @@ set(CMAKE_MODULE_PATH
 # Execute each dependency find_cmake script
 find_package(FFTW REQUIRED)
 find_package(LibSndFile REQUIRED)
-find_package(LibPortAudio REQUIRED)
+# find_package(LibPortAudio REQUIRED)
 
 # Same as above, but OpenMP isn't a obligatory dependency
 find_package(OpenMP)
