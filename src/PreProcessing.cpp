@@ -3,7 +3,7 @@
 #include "../include/PreProcessing.h"
 
 using namespace std;
-using namespace motrix;
+using namespace voicer;
 
 inline
 size_t getBinSize(size_t sampleRate, size_t resolutionDuration, size_t binMinimumSize = 512) {
@@ -136,7 +136,7 @@ void genFilterBanks(const vector<double> &frame, unsigned sampleRate, size_t fil
     delete[] pointsSample;
 }
 
-PreProcessing::PreProcessing(const handler_t &handler) : handler{handler} {
+PreProcessing::PreProcessing() {
     // === Logger Init ===
     spdlog::set_async_mode(8192);
     console = spdlog::stdout_logger_mt(typeid(*this).name(), true);
@@ -144,13 +144,14 @@ PreProcessing::PreProcessing(const handler_t &handler) : handler{handler} {
     spdlog::drop_all();
 }
 
-void PreProcessing::loadAudioFile(const string &audioPath) {
-    int counter;
+vector<vector<double>> PreProcessing::loadAudioFile(const string &audioPath) {
+    int i;
     SndfileHandle audioInfo = SndfileHandle(audioPath);
     fftw_complex *fftResult;
     fftw_plan fftPlan, dctPlan;
-    vector<double> audioData, frame, filterBanks;
-    size_t binSize, windowSize, windowNum, windowStep;
+    vector<vector<double>> matrix;
+    vector<double> audioData, frame, filterBanks, average;
+    size_t binSize, windowSize, windowNum, windowStep, j;
 
     if (audioInfo.error()) {
         console->error("Failed to open audio file. Reason: {0}", audioInfo.strError());
@@ -172,15 +173,16 @@ void PreProcessing::loadAudioFile(const string &audioPath) {
     windowStep = windowSize / oversamplingFactor;
     windowNum = padAudioData(&audioData, windowSize, windowStep);
 
+    matrix = vector<vector<double>>(windowNum, vector<double>(filterCount));
     frame = vector<double>(windowSize);
     filterBanks = vector<double>(filterCount);
+    average = vector<double>(filterCount, 0.0);
     fftResult = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * windowSize);
     fftPlan = fftw_plan_dft_r2c_1d(windowSize, frame.data(), fftResult, FFTW_MEASURE);
     dctPlan = fftw_plan_r2r_1d(filterCount, filterBanks.data(), filterBanks.data(), FFTW_REDFT10, FFTW_MEASURE);
 
-    for (counter = 0; counter < windowNum; counter++) {
-        size_t j;
-        size_t frameInit = windowStep * counter;
+    for (i = 0; i < windowNum; i++) {
+        size_t frameInit = windowStep * i;
         double real, imag;
 
         // Copy frame data and apply window function
@@ -199,12 +201,29 @@ void PreProcessing::loadAudioFile(const string &audioPath) {
         // Execute MFCC
         genFilterBanks(frame, audioInfo.samplerate(), filterCount, cutoffLow, cutoffHigh, &filterBanks);
 
-        fftw_execute(dctPlan); // Execute DCT
+        for (j = 0; j < filterCount; j++) {
+            matrix[i][j] = frame[j] + (i == 0 ? 0 : matrix[i - 1][j]);
+            average[j] += (matrix[i][j] / windowNum);
+        }
+    }
 
-        handler(filterBanks);
+    for (i = 0; i < filterCount; i++) {
+        double sum = 0.0;
+
+        for (j = 0; j < windowNum; j++) {
+            sum += ((matrix[j][i] - average[i]) * (matrix[j][i] - average[i])) / (windowNum - 1);
+        }
+
+        double standardDeviation = sqrt(sum);
+
+        for (j = 0; j < windowNum; j++) {
+            matrix[j][i] = tanh((matrix[j][i] - average[i]) / standardDeviation);
+        }
     }
 
     fftw_free(fftResult);
     fftw_destroy_plan(fftPlan);
     fftw_destroy_plan(dctPlan);
+
+    return matrix;
 }

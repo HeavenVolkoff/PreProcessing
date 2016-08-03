@@ -16,6 +16,7 @@ set(HEADER_FILES
 # List of Source files (.c, .cc, .cpp)
 set(SOURCE_FILES
         src/PreProcessing.cpp
+        src/main.cpp
         )
 
 # Include Projet cmake scripts (Mostly used to find dependencies libraries on the system)
@@ -41,7 +42,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${Flags} ${PORTAUDIO_DEFINITIONS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Flags} ${PORTAUDIO_DEFINITIONS}")
 
 # Specify which project's files will be compiled
-add_library(PreProcessing SHARED
+add_executable(PreProcessing
         ${HEADER_FILES}
         ${SOURCE_FILES}
         )
