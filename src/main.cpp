@@ -1,7 +1,7 @@
 #include "../include/PreProcessing.h"
 
 using namespace std;
-using namespace motrix;
+using namespace voicer;
 
 /**
  * Log received vector
@@ -26,11 +26,12 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    PreProcessing p([](const vector<double> &frame){
-        printVector(frame);
-    });
+    PreProcessing p;
+    vector<vector<double>> result = p.loadAudioFile(argv[1]);
 
-    p.loadAudioFile(argv[1]);
+    for(int j = 0; j < result.size(); j++){
+        printVector(result[j]);
+    }
 
     return 0;
 }

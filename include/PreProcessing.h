@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace motrix {
+namespace voicer {
     /**
      * @link: http://support.ircam.fr/docs/AudioSculpt/3.0/co/FFT%20Params.html
      * @link: http://www.fftw.org/doc/Real_002dto_002dReal-Transforms.html#Real_002dto_002dReal-Transforms
@@ -38,19 +38,15 @@ namespace motrix {
      */
     class PreProcessing {
     public:
-        typedef void (*handler_t)(const vector<double> &);
+        PreProcessing();
 
-        PreProcessing(const handler_t &handler);
-
-        void loadAudioFile(const string &);
+        vector<vector<double>> loadAudioFile(const string &);
 
         const double cutoffLow = 300.0;
         const double cutoffHigh = 8000.0;
         const size_t filterCount = 26;
         const size_t oversamplingFactor = 8;
         const size_t expectedResolutionDuration = 20;
-
-        const handler_t &handler;
     private:
         std::shared_ptr<spdlog::logger> console;
     };

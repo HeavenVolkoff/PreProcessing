@@ -6,7 +6,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 # Flags to send to the compiler
 # OBS: Do NOT use Linker OR Include flags (CMAKE take care of this for you)
-set(Flags "-std=c++14")
+set(Flags "-std=c++14 -O3")
 
 # List of Header files (.h, .hh, .hpp)
 set(HEADER_FILES
